@@ -1,0 +1,86 @@
+{% extends "admin/layout.html" %}
+{% block title %}Замовлення — Shopix Admin{% endblock %}
+{% block page_title %}Замовлення{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+  <div class="admin-card-head">
+    <h2>Всі замовлення ({{ orders|length }})</h2>
+  </div>
+  {% if orders %}
+    <div style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Покупець</th>
+            <th>Товари</th>
+            <th>Сума</th>
+            <th>Статус</th>
+            <th>Дата</th>
+            <th>Дії</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+            <tr>
+              <td><strong>#{{ order.id }}</strong></td>
+              <td>
+                <div style="font-weight:600;">{{ order.name }}</div>
+                <div style="font-size:.75rem;color:var(--muted);">{{ order.email }}</div>
+                {% if order.phone %}<div style="font-size:.75rem;color:var(--muted);">{{ order.phone }}</div>{% endif %}
+              </td>
+              <td>
+                {% for item in order.items %}
+                  <div style="font-size:.78rem;color:var(--muted);">{{ item.name[:30] }}{% if item.name|length > 30 %}…{% endif %} × {{ item.quantity }}</div>
+                {% endfor %}
+              </td>
+              <td><strong>{{ "%.0f"|format(order.total) }} ₴</strong></td>
+              <td>
+                <form action="/admin/orders/{{ order.id }}/status" method="post" style="display:flex;gap:6px;align-items:center;">
+                  <select name="status" class="sort-select" style="font-size:.78rem;padding:5px 8px;" onchange="this.form.submit()">
+                    <option value="pending"   {% if order.status=='pending'   %}selected{% endif %}>В обробці</option>
+                    <option value="paid"      {% if order.status=='paid'      %}selected{% endif %}>Оплачено</option>
+                    <option value="shipped"   {% if order.status=='shipped'   %}selected{% endif %}>Відправлено</option>
+                    <option value="delivered" {% if order.status=='delivered' %}selected{% endif %}>Доставлено</option>
+                    <option value="cancelled" {% if order.status=='cancelled' %}selected{% endif %}>Скасовано</option>
+                  </select>
+                </form>
+              </td>
+              <td style="color:var(--muted);font-size:.82rem;">
+                {{ order.created_at.strftime('%d.%m.%Y') }}<br/>
+                {{ order.created_at.strftime('%H:%M') }}
+              </td>
+              <td>
+                <button onclick="toggleOrder('order-{{ order.id }}')" class="btn btn-ghost btn-sm">Деталі</button>
+              </td>
+            </tr>
+            <tr id="order-{{ order.id }}" style="display:none;">
+              <td colspan="7" style="padding:0;">
+                <div style="padding:16px 20px;background:rgba(255,255,255,.02);border-top:1px solid var(--border);">
+                  <div style="font-size:.8rem;color:var(--muted);margin-bottom:8px;"><strong>Адреса:</strong> {{ order.address }}</div>
+                  {% if order.notes %}<div style="font-size:.8rem;color:var(--muted);margin-bottom:8px;"><strong>Примітка:</strong> {{ order.notes }}</div>{% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state" style="padding:48px;">
+      <div class="empty-icon">🛒</div>
+      <h2>Замовлень поки немає</h2>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleOrder(id) {
+  const row = document.getElementById(id);
+  row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+}
+</script>
+{% endblock %}

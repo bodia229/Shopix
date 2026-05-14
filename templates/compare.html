@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}{{ t.cmp_title }} — Shopix{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 32px 24px;">
+  <h1 style="font-size:1.4rem;font-weight:800;margin-bottom:24px;">{{ t.cmp_title }}</h1>
+
+  {% if products %}
+  <div class="compare-table-wrap">
+    <table class="compare-table">
+
+      <!-- PRODUCT HEADERS -->
+      <thead>
+        <tr>
+          <th class="compare-label-col"></th>
+          {% for p in products %}
+            <th class="compare-product-col">
+              <div class="compare-product-head">
+                <button class="compare-remove-btn"
+                        onclick="toggleCompare('{{ p.id }}','{{ p.name|replace("'","\\'")|replace('"','\\"') }}','{{ p.image }}'); location.reload()">
+                  {{ t.cmp_remove }}
+                </button>
+                <a href="/product/{{ p.slug }}">
+                  <div class="compare-img">
+                    {% if p.image %}
+                      <img src="{{ p.image }}" alt="{{ p.name }}"/>
+                    {% else %}
+                      <span style="font-size:3rem;">📦</span>
+                    {% endif %}
+                  </div>
+                  <div class="compare-product-name">{{ p.name }}</div>
+                </a>
+                {% if p.brand %}
+                  <div class="compare-product-brand">{{ p.brand }}</div>
+                {% endif %}
+              </div>
+            </th>
+          {% endfor %}
+        </tr>
+      </thead>
+
+      <tbody>
+        <!-- PRICE -->
+        <tr class="compare-row">
+          <td class="compare-label">{{ t.cmp_price }}</td>
+          {% for p in products %}
+            {% set prices = products|map(attribute='price')|list %}
+            {% set min_price = prices|min %}
+            <td class="compare-cell {% if p.price == min_price %}best-val{% endif %}">
+              <div class="cmp-price-main">{{ "%.0f"|format(p.price) }} ₴</div>
+              {% if p.old_price and p.old_price > p.price %}
+                <div class="cmp-price-old">{{ "%.0f"|format(p.old_price) }} ₴</div>
+                <div class="cmp-price-save">{{ t.savings }} {{ "%.0f"|format(p.old_price - p.price) }} ₴</div>
+              {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+
+        <!-- BRAND -->
+        <tr class="compare-row">
+          <td class="compare-label">{{ t.cmp_brand }}</td>
+          {% for p in products %}
+            <td class="compare-cell">{{ p.brand or '—' }}</td>
+          {% endfor %}
+        </tr>
+
+        <!-- RATING -->
+        <tr class="compare-row">
+          <td class="compare-label">{{ t.cmp_rating }}</td>
+          {% for p in products %}
+            {% set ratings = products|map(attribute='rating')|list %}
+            {% set max_rating = ratings|max %}
+            <td class="compare-cell {% if p.rating == max_rating and p.rating > 0 %}best-val{% endif %}">
+              {% if p.reviews_count > 0 %}
+                <span class="stars">{% for i in range(p.rating|int) %}★{% endfor %}{% for i in range(5 - p.rating|int) %}☆{% endfor %}</span>
+                {{ p.rating }} ({{ p.reviews_count }})
+              {% else %}
+                <span style="color:var(--muted);">—</span>
+              {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+
+        <!-- STOCK -->
+        <tr class="compare-row">
+          <td class="compare-label">{{ t.cmp_stock }}</td>
+          {% for p in products %}
+            <td class="compare-cell">
+              {% if p.stock > 0 %}
+                <span class="stock-badge in-stock" style="display:inline-flex;">{{ t.cmp_in }}</span>
+              {% else %}
+                <span class="stock-badge out-stock" style="display:inline-flex;">{{ t.cmp_out }}</span>
+              {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+
+        <!-- SPECS -->
+        {% if spec_keys %}
+          <tr>
+            <td colspan="{{ products|length + 1 }}" class="compare-section-title">{{ t.cmp_specs }}</td>
+          </tr>
+          {% for key in spec_keys %}
+            <tr class="compare-row">
+              <td class="compare-label">{{ key }}</td>
+              {% for p in products %}
+                <td class="compare-cell {% if specs_map[p.id].get(key) %}{% endif %}">
+                  {{ specs_map[p.id].get(key, '—') }}
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        {% endif %}
+
+        <!-- ADD TO CART ROW -->
+        <tr>
+          <td class="compare-label"></td>
+          {% for p in products %}
+            <td class="compare-cell" style="padding-top:18px;">
+              {% if p.stock > 0 %}
+                <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center;" onclick="addToCart({{ p.id }})">
+                  {{ t.cmp_buy }}
+                </button>
+              {% else %}
+                <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;opacity:.5;" disabled>
+                  {{ t.cmp_out }}
+                </button>
+              {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+    <div class="empty-state" style="padding:80px 20px;">
+      <div class="empty-icon">⚖️</div>
+      <h2>{{ t.cmp_empty }}</h2>
+      <a href="/catalog" class="btn btn-primary" style="margin-top:12px;">{{ t.nav_catalog }} →</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

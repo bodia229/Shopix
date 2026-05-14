@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}{{ t.cart_title }} — Shopix{% endblock %}
+{% block content %}
+<div class="container">
+  {% if cart %}
+    <div class="cart-wrap">
+      <div>
+        <h1 style="font-size:1.4rem;font-weight:800;margin-bottom:20px;">
+          {{ t.cart_title }} ({{ cart|length }})
+        </h1>
+        <div class="cart-items">
+          {% for entry in cart %}
+            <div class="cart-item" id="cart-row-{{ entry.item.id }}">
+              <a href="/product/{{ entry.product.slug }}" class="cart-item-img">
+                {% if entry.product.image %}
+                  <img src="{{ entry.product.image }}" alt="{{ entry.product.name }}"/>
+                {% else %}
+                  <div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:2rem;">📦</div>
+                {% endif %}
+              </a>
+              <div class="cart-item-info">
+                <a href="/product/{{ entry.product.slug }}" class="cart-item-name">{{ entry.product.name }}</a>
+                {% if entry.product.brand %}
+                  <div style="font-size:.75rem;color:var(--muted);margin-bottom:6px;">{{ entry.product.brand }}</div>
+                {% endif %}
+                <div class="cart-item-price">{{ "%.0f"|format(entry.product.price) }} {{ t.cart_per_item }}</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;">
+                <div class="qty-control">
+                  <button class="qty-btn" onclick="updateQty({{ entry.item.id }}, {{ entry.item.quantity - 1 }})">−</button>
+                  <span class="qty-val">{{ entry.item.quantity }}</span>
+                  <button class="qty-btn" onclick="updateQty({{ entry.item.id }}, {{ entry.item.quantity + 1 }})">+</button>
+                </div>
+                <div style="font-weight:800;font-size:1.05rem;">{{ "%.0f"|format(entry.subtotal) }} ₴</div>
+                <form action="/cart/remove" method="post" style="margin:0;">
+                  <input type="hidden" name="item_id" value="{{ entry.item.id }}"/>
+                  <button type="submit" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.8rem;">{{ t.cart_remove }}</button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div>
+        <div class="cart-summary">
+          <h3>{{ t.cart_summary }}</h3>
+          {% for entry in cart %}
+            <div class="summary-row">
+              <span>{{ entry.product.name[:30] }}{% if entry.product.name|length > 30 %}…{% endif %} × {{ entry.item.quantity }}</span>
+              <span>{{ "%.0f"|format(entry.subtotal) }} ₴</span>
+            </div>
+          {% endfor %}
+          <div class="summary-total">
+            <span>{{ t.cart_total }}</span>
+            <span>{{ "%.0f"|format(total) }} ₴</span>
+          </div>
+          <a href="/checkout" class="btn btn-primary" style="width:100%;margin-top:16px;justify-content:center;">{{ t.cart_order }}</a>
+          <a href="/catalog"  class="btn btn-ghost"   style="width:100%;margin-top:8px;justify-content:center;">{{ t.cart_continue }}</a>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="empty-state" style="padding:80px 20px;">
+      <div class="empty-icon">🛒</div>
+      <h2>{{ t.cart_empty_h }}</h2>
+      <p>{{ t.cart_empty_p }}</p>
+      <a href="/catalog" class="btn btn-primary">{{ t.cart_go }}</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function updateQty(itemId, newQty) {
+  const fd = new FormData();
+  fd.append('item_id', itemId);
+  fd.append('quantity', newQty);
+  await fetch('/cart/update', {method:'POST', body:fd});
+  location.reload();
+}
+</script>
+{% endblock %}

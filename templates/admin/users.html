@@ -1,0 +1,57 @@
+{% extends "admin/layout.html" %}
+{% block title %}Користувачі — Shopix Admin{% endblock %}
+{% block page_title %}Користувачі{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+  <div class="admin-card-head">
+    <h2>Всі користувачі ({{ users|length }})</h2>
+  </div>
+  {% if users %}
+    <div style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Ім'я</th>
+            <th>Email</th>
+            <th>Телефон</th>
+            <th>Роль</th>
+            <th>Дата реєстрації</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+            <tr>
+              <td style="color:var(--muted);">{{ u.id }}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--cyan));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0;">
+                    {{ u.name[0].upper() }}
+                  </div>
+                  <span style="font-weight:600;">{{ u.name }}</span>
+                </div>
+              </td>
+              <td style="color:var(--muted);">{{ u.email }}</td>
+              <td style="color:var(--muted);">{{ u.phone or '—' }}</td>
+              <td>
+                {% if u.is_admin %}
+                  <span class="badge badge-purple">Адмін</span>
+                {% else %}
+                  <span class="badge badge-gray">Покупець</span>
+                {% endif %}
+              </td>
+              <td style="color:var(--muted);font-size:.82rem;">{{ u.created_at.strftime('%d.%m.%Y') }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state" style="padding:48px;">
+      <div class="empty-icon">👥</div>
+      <h2>Користувачів поки немає</h2>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

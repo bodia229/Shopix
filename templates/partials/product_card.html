@@ -1,0 +1,45 @@
+<div class="product-card">
+  <a href="/product/{{ p.slug }}" class="product-img">
+    {% if p.image %}
+      <img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy"/>
+    {% else %}
+      <div class="product-img-placeholder">📦</div>
+    {% endif %}
+    {% if p.is_featured %}
+      <div class="product-badge">Топ</div>
+    {% elif p.old_price and p.old_price > p.price %}
+      <div class="product-badge sale">-{{ "%.0f"|format((1 - p.price/p.old_price)*100) }}%</div>
+    {% endif %}
+  </a>
+  <div class="product-body">
+    {% if p.brand %}
+      <div class="product-brand">{{ p.brand }}</div>
+    {% endif %}
+    <a href="/product/{{ p.slug }}" class="product-name">{{ p.name }}</a>
+    {% if p.reviews_count > 0 %}
+      <div class="product-rating">
+        <span class="stars">{% for i in range(p.rating|int) %}★{% endfor %}{% for i in range(5 - p.rating|int) %}☆{% endfor %}</span>
+        <span>{{ p.rating }} ({{ p.reviews_count }})</span>
+      </div>
+    {% endif %}
+    <div class="product-price">
+      <span class="price-current">{{ "%.0f"|format(p.price) }} ₴</span>
+      {% if p.old_price and p.old_price > p.price %}
+        <span class="price-old">{{ "%.0f"|format(p.old_price) }} ₴</span>
+        <span class="price-discount">-{{ "%.0f"|format((1 - p.price/p.old_price)*100) }}%</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="product-footer">
+    {% if p.stock > 0 %}
+      <button class="btn-cart" onclick="addToCart({{ p.id }})">{{ t.btn_add_cart }}</button>
+    {% else %}
+      <button class="btn-cart" disabled style="opacity:.5;cursor:not-allowed;">{{ t.btn_no_stock }}</button>
+    {% endif %}
+    <button class="btn-compare-card btn-wish"
+            data-id="{{ p.id }}"
+            onclick="toggleCompare('{{ p.id }}', '{{ p.name|replace("'","\\'")|replace('"','\\"') }}', '{{ p.image }}')">
+      ⚖️ {{ t.btn_compare }}
+    </button>
+  </div>
+</div>

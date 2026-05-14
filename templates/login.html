@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ t.login_title }} — Shopix{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="form-box">
+    <h1>{{ t.login_title }}</h1>
+    <p>{{ t.login_no_acc }} <a href="/register" style="color:var(--accent2);">{{ t.login_reg }}</a></p>
+    {% if error %}<div class="form-error">{{ error }}</div>{% endif %}
+    <form method="post" action="/login">
+      <input type="hidden" name="next_url" value="{{ request.query_params.get('next','') }}"/>
+      <div class="form-group">
+        <label>{{ t.login_email }}</label>
+        <input type="email" name="email" required placeholder="your@email.com" autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label>{{ t.login_pass }}</label>
+        <input type="password" name="password" required placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">{{ t.login_btn }}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

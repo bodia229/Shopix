@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{{ t.chk_title }} — Shopix{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="checkout-wrap">
+    <div>
+      <h1 style="font-size:1.4rem;font-weight:800;margin-bottom:24px;">{{ t.chk_title }}</h1>
+      <form action="/checkout/place" method="post">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;">
+          <h3 style="font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:18px;">{{ t.chk_contacts }}</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="form-group" style="margin:0;">
+              <label>{{ t.chk_name }}</label>
+              <input type="text" name="name" value="{{ user.name if user else '' }}" required/>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label>{{ t.chk_email }}</label>
+              <input type="email" name="email" value="{{ user.email if user else '' }}" required placeholder="email@example.com"/>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:14px;margin-bottom:0;">
+            <label>{{ t.chk_phone }}</label>
+            <input type="tel" name="phone" value="{{ user.phone if user and user.phone else '' }}" placeholder="+38 (___) ___-__-__"/>
+          </div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;">
+          <h3 style="font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:18px;">{{ t.chk_address }}</h3>
+          <div class="form-group" style="margin-bottom:0;">
+            <label>{{ t.chk_addr_label }}</label>
+            <textarea name="address" required placeholder="{{ t.chk_addr_ph }}" rows="2" style="resize:none;">{{ user.address if user and user.address else '' }}</textarea>
+          </div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;">
+          <h3 style="font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:18px;">{{ t.chk_notes }}</h3>
+          <div class="form-group" style="margin-bottom:0;">
+            <textarea name="notes" placeholder="{{ t.chk_notes_ph }}" rows="3" style="resize:none;"></textarea>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;">{{ t.chk_confirm }}</button>
+        {% if not user %}
+          <p style="text-align:center;font-size:.8rem;color:var(--muted);margin-top:12px;">
+            <a href="/login?next=/checkout" style="color:var(--accent2);">{{ t.chk_login_hint }}</a>, {{ t.chk_login_hint2 }}
+          </p>
+        {% endif %}
+      </form>
+    </div>
+    <div>
+      <div class="cart-summary" style="top:80px;">
+        <h3>{{ t.chk_order }}</h3>
+        {% for entry in cart %}
+          <div class="summary-row">
+            <span>{{ entry.product.name[:28] }}{% if entry.product.name|length > 28 %}…{% endif %} × {{ entry.item.quantity }}</span>
+            <span>{{ "%.0f"|format(entry.subtotal) }} ₴</span>
+          </div>
+        {% endfor %}
+        <div class="summary-row" style="margin-top:8px;">
+          <span>{{ t.cart_delivery }}</span>
+          <span style="color:var(--green);">{{ t.cart_free }}</span>
+        </div>
+        <div class="summary-total">
+          <span>{{ t.cart_total }}</span>
+          <span>{{ "%.0f"|format(total) }} ₴</span>
+        </div>
+        <div style="margin-top:16px;padding:12px;background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.2);border-radius:10px;font-size:.8rem;color:var(--green);">
+          ✓ {{ t.chk_cod }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

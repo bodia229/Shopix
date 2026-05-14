@@ -1,0 +1,89 @@
+{% extends "admin/layout.html" %}
+{% block title %}Дашборд — Shopix Admin{% endblock %}
+{% block page_title %}Дашборд{% endblock %}
+
+{% block content %}
+
+<!-- STATS -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(124,92,252,.15);">📦</div>
+    <div>
+      <div class="stat-label">Товарів</div>
+      <div class="stat-value">{{ total_products }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(34,211,238,.12);">🛒</div>
+    <div>
+      <div class="stat-label">Замовлень</div>
+      <div class="stat-value">{{ total_orders }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(74,222,128,.12);">👥</div>
+    <div>
+      <div class="stat-label">Користувачів</div>
+      <div class="stat-value">{{ total_users }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(251,191,36,.12);">💰</div>
+    <div>
+      <div class="stat-label">Дохід</div>
+      <div class="stat-value">{{ "%.0f"|format(revenue) }} ₴</div>
+    </div>
+  </div>
+</div>
+
+<!-- RECENT ORDERS -->
+<div class="admin-card">
+  <div class="admin-card-head">
+    <h2>Останні замовлення</h2>
+    <a href="/admin/orders" class="btn btn-ghost btn-sm">Всі →</a>
+  </div>
+  {% if recent_orders %}
+    <div style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Покупець</th>
+            <th>Email</th>
+            <th>Сума</th>
+            <th>Статус</th>
+            <th>Дата</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in recent_orders %}
+            <tr>
+              <td><strong>#{{ order.id }}</strong></td>
+              <td>{{ order.name }}</td>
+              <td style="color:var(--muted);">{{ order.email }}</td>
+              <td><strong>{{ "%.0f"|format(order.total) }} ₴</strong></td>
+              <td>
+                <span class="order-status status-{{ order.status }}">
+                  {% if order.status == 'pending' %}В обробці
+                  {% elif order.status == 'paid' %}Оплачено
+                  {% elif order.status == 'shipped' %}Відправлено
+                  {% elif order.status == 'delivered' %}Доставлено
+                  {% elif order.status == 'cancelled' %}Скасовано
+                  {% else %}{{ order.status }}{% endif %}
+                </span>
+              </td>
+              <td style="color:var(--muted);">{{ order.created_at.strftime('%d.%m.%Y') }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state" style="padding:40px;">
+      <div class="empty-icon">🛒</div>
+      <p>Замовлень поки немає</p>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

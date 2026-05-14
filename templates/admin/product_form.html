@@ -1,0 +1,105 @@
+{% extends "admin/layout.html" %}
+{% block title %}{{ 'Редагувати' if product else 'Новий товар' }} — Shopix Admin{% endblock %}
+{% block page_title %}{{ 'Редагувати товар' if product else 'Новий товар' }}{% endblock %}
+{% block topbar_right %}
+  <a href="/admin/products" class="btn btn-ghost btn-sm">← Назад</a>
+{% endblock %}
+
+{% block content %}
+<div class="admin-form-wrap">
+  <form method="post" action="{{ '/admin/products/edit/'+product.id|string if product else '/admin/products/new' }}">
+
+    <div class="admin-form-section">
+      <h3>Основна інформація</h3>
+      <div class="form-group">
+        <label>Назва товару *</label>
+        <input type="text" name="name" value="{{ product.name if product else '' }}" required placeholder="Наприклад: iPhone 15 Pro 256GB"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="margin:0;">
+          <label>Категорія</label>
+          <select name="category_id">
+            <option value="">— Без категорії —</option>
+            {% for cat in categories %}
+              <option value="{{ cat.id }}" {% if product and product.category_id == cat.id %}selected{% endif %}>
+                {{ cat.icon }} {{ cat.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Бренд</label>
+          <input type="text" name="brand" value="{{ product.brand if product else '' }}" placeholder="Apple, Samsung..."/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Опис</label>
+        <textarea name="description" rows="4" placeholder="Опис товару...">{{ product.description if product else '' }}</textarea>
+      </div>
+    </div>
+
+    <div class="admin-form-section">
+      <h3>Ціна та склад</h3>
+      <div class="form-row-3">
+        <div class="form-group" style="margin:0;">
+          <label>Ціна (₴) *</label>
+          <input type="number" name="price" step="0.01" value="{{ product.price if product else '' }}" required placeholder="1999"/>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Стара ціна (₴)</label>
+          <input type="number" name="old_price" step="0.01" value="{{ product.old_price if product and product.old_price else '' }}" placeholder="2499"/>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Залишок (шт.)</label>
+          <input type="number" name="stock" value="{{ product.stock if product else 0 }}" min="0" placeholder="10"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Артикул (SKU)</label>
+        <input type="text" name="sku" value="{{ product.sku if product else '' }}" placeholder="IPHONE15PRO-256"/>
+      </div>
+    </div>
+
+    <div class="admin-form-section">
+      <h3>Зображення</h3>
+      <div class="form-group">
+        <label>URL головного зображення</label>
+        <input type="url" name="image" value="{{ product.image if product else '' }}" placeholder="https://..."/>
+      </div>
+      {% if product and product.image %}
+        <div style="margin-top:10px;">
+          <img src="{{ product.image }}" style="max-height:120px;border-radius:8px;border:1px solid var(--border);"/>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="admin-form-section">
+      <h3>Характеристики (JSON)</h3>
+      <div class="form-group" style="margin:0;">
+        <label>JSON-об'єкт із характеристиками</label>
+        <textarea name="specs" rows="5" placeholder='{"Екран": "6.1&quot;", "Процесор": "A17 Pro", "ОЗП": "8 GB"}'>{{ product.specs if product else '' }}</textarea>
+      </div>
+    </div>
+
+    <div class="admin-form-section">
+      <h3>Налаштування</h3>
+      <div class="toggle-group">
+        <input type="checkbox" name="is_active" id="is_active" value="true" {% if not product or product.is_active %}checked{% endif %} style="width:16px;height:16px;accent-color:var(--accent);"/>
+        <label class="toggle-label" for="is_active">Товар активний (видимий у каталозі)</label>
+      </div>
+      <div class="toggle-group">
+        <input type="checkbox" name="is_featured" id="is_featured" value="true" {% if product and product.is_featured %}checked{% endif %} style="width:16px;height:16px;accent-color:var(--accent);"/>
+        <label class="toggle-label" for="is_featured">Показувати на головній сторінці (Топ)</label>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;">
+      <button type="submit" class="btn btn-primary">
+        {{ '💾 Зберегти зміни' if product else '+ Додати товар' }}
+      </button>
+      <a href="/admin/products" class="btn btn-ghost">Скасувати</a>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

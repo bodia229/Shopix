@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Shopix — {% if lang == 'en' %}Electronics & Gadgets{% elif lang == 'ru' %}Электроника и гаджеты{% else %}Електроніка та гаджети{% endif %}{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-badge">🔥 {{ t.hero_badge }}</div>
+        <h1>{{ t.hero_h1_1 }}<br/><span>{{ t.hero_h1_2 }}</span><br/>{{ t.hero_h1_3 }}</h1>
+        <p>{{ t.hero_sub }}</p>
+        <div class="hero-btns">
+          <a href="/catalog" class="btn btn-primary">{{ t.hero_btn1 }}</a>
+          <a href="/catalog?sort=popular" class="btn btn-outline">{{ t.hero_btn2 }}</a>
+        </div>
+      </div>
+      <div class="hero-img">🖥️</div>
+    </div>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">{{ t.sec_categories }} <span>{{ t.sec_goods }}</span></h2>
+    </div>
+    <div class="cat-grid">
+      {% for cat in categories %}
+        <a href="/catalog?category={{ cat.slug }}" class="cat-card">
+          <div class="cat-card-icon">{{ cat.icon }}</div>
+          <div class="cat-card-name">{{ cat.name }}</div>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED -->
+{% if featured %}
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">{{ t.sec_featured }} <span>{{ t.sec_choose }}</span></h2>
+      <a href="/catalog?sort=popular" class="btn btn-ghost btn-sm">{{ t.sec_all }}</a>
+    </div>
+    <div class="product-grid">
+      {% for p in featured %}{% include "partials/product_card.html" %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- NEW ARRIVALS -->
+{% if new_arrivals %}
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">{{ t.sec_new }} <span>{{ t.sec_arrivals }}</span></h2>
+      <a href="/catalog" class="btn btn-ghost btn-sm">{{ t.sec_all }}</a>
+    </div>
+    <div class="product-grid">
+      {% for p in new_arrivals %}{% include "partials/product_card.html" %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- PROMO BANNER -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div style="background:linear-gradient(135deg,rgba(124,92,252,.15) 0%,rgba(34,211,238,.1) 100%);
+         border:1px solid rgba(124,92,252,.3);border-radius:20px;padding:40px 48px;
+         display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px;">
+      <div>
+        <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent2);margin-bottom:8px;">{{ t.promo_badge }}</div>
+        <div style="font-size:1.5rem;font-weight:900;margin-bottom:6px;">{{ t.promo_title }}</div>
+        <div style="color:var(--muted);font-size:.9rem;">{{ t.promo_sub }}</div>
+      </div>
+      <a href="/catalog" class="btn btn-primary">{{ t.promo_btn }}</a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

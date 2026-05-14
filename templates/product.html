@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} — Shopix{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="breadcrumb">
+    <a href="/">{{ t.bc_home }}</a><span class="breadcrumb-sep">›</span>
+    <a href="/catalog">{{ t.bc_catalog }}</a>
+    {% if category %}<span class="breadcrumb-sep">›</span><a href="/catalog?category={{ category.slug }}">{{ category.name }}</a>{% endif %}
+    <span class="breadcrumb-sep">›</span><span>{{ product.name }}</span>
+  </div>
+
+  <div class="product-wrap">
+    <!-- GALLERY -->
+    <div class="product-gallery">
+      <div class="gallery-main">
+        {% if product.image %}
+          <img src="{{ product.image }}" alt="{{ product.name }}" id="gallery-main-img"/>
+        {% else %}
+          <div style="font-size:6rem;">📦</div>
+        {% endif %}
+      </div>
+      {% if images %}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          {% if product.image %}
+            <div onclick="document.getElementById('gallery-main-img').src='{{ product.image }}'"
+                 style="width:64px;height:64px;border-radius:8px;background:var(--bg3);overflow:hidden;cursor:pointer;border:2px solid var(--accent);">
+              <img src="{{ product.image }}" style="width:100%;height:100%;object-fit:contain;padding:6px;"/>
+            </div>
+          {% endif %}
+          {% for img in images %}
+            <div onclick="document.getElementById('gallery-main-img').src='{{ img }}'"
+                 style="width:64px;height:64px;border-radius:8px;background:var(--bg3);overflow:hidden;cursor:pointer;border:2px solid var(--border);">
+              <img src="{{ img }}" style="width:100%;height:100%;object-fit:contain;padding:6px;"/>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- INFO -->
+    <div>
+      {% if product.brand %}
+        <div style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent2);margin-bottom:8px;">{{ product.brand }}</div>
+      {% endif %}
+      <h1 class="product-title">{{ product.name }}</h1>
+      <div class="product-meta">
+        {% if product.sku %}<span>{{ t.sku_label }} {{ product.sku }}</span>{% endif %}
+        {% if product.reviews_count > 0 %}
+          <span class="stars">{% for i in range(product.rating|int) %}★{% endfor %}{% for i in range(5 - product.rating|int) %}☆{% endfor %}</span>
+          <a href="#reviews" style="color:var(--muted);">{{ product.reviews_count }}</a>
+        {% endif %}
+      </div>
+      <div class="product-price-big">
+        {{ "%.0f"|format(product.price) }} ₴
+        {% if product.old_price and product.old_price > product.price %}
+          <span class="old">{{ "%.0f"|format(product.old_price) }} ₴</span>
+        {% endif %}
+      </div>
+      {% if product.old_price and product.old_price > product.price %}
+        <div style="margin-bottom:16px;">
+          <span class="price-discount" style="font-size:.82rem;">{{ t.savings }} {{ "%.0f"|format(product.old_price - product.price) }} ₴ (-{{ "%.0f"|format((1 - product.price/product.old_price)*100) }}%)</span>
+        </div>
+      {% endif %}
+      {% if product.stock > 0 %}
+        <div class="stock-badge in-stock" style="margin-bottom:20px;">✓ {{ t.in_stock }} ({{ product.stock }})</div>
+      {% else %}
+        <div class="stock-badge out-stock" style="margin-bottom:20px;">✕ {{ t.out_stock }}</div>
+      {% endif %}
+
+      {% if product.stock > 0 %}
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;">
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty(-1)">−</button>
+            <span class="qty-val" id="qty-display">1</span>
+            <button class="qty-btn" onclick="changeQty(1)">+</button>
+          </div>
+          <button class="btn btn-primary" style="flex:1;" onclick="addToCartWithQty()">{{ t.btn_to_cart }}</button>
+        </div>
+      {% endif %}
+
+      <button class="btn btn-ghost btn-sm btn-compare-card" data-id="{{ product.id }}"
+              onclick="toggleCompare('{{ product.id }}', '{{ product.name|replace("'","\\'")|replace('"','\\"') }}', '{{ product.image }}')"
+              style="margin-bottom:20px;">
+        ⚖️ {{ t.btn_compare }}
+      </button>
+
+      {% if product.description %}
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:20px;">
+          <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px;">{{ t.tab_desc }}</div>
+          <p style="font-size:.88rem;line-height:1.7;color:var(--muted);">{{ product.description }}</p>
+        </div>
+      {% endif %}
+      {% if specs %}
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;">
+          <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px;">{{ t.tab_specs }}</div>
+          <table class="specs-table">
+            {% for key, val in specs.items() %}<tr><td>{{ key }}</td><td>{{ val }}</td></tr>{% endfor %}
+          </table>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- REVIEWS -->
+  <div id="reviews" style="padding:40px 0 20px;">
+    <h2 class="section-title" style="margin-bottom:24px;">{{ t.tab_reviews }} <span>({{ product.reviews_count }})</span></h2>
+    {% if reviews %}
+      {% for r in reviews %}
+        <div class="review-card">
+          <div class="review-head">
+            <div>
+              <span class="review-name">{{ r.name }}</span>
+              <span class="stars" style="margin-left:10px;">{% for i in range(r.rating) %}★{% endfor %}{% for i in range(5-r.rating) %}☆{% endfor %}</span>
+            </div>
+            <div class="review-date">{{ r.created_at.strftime('%d.%m.%Y') }}</div>
+          </div>
+          <div class="review-text">{{ r.text }}</div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p style="color:var(--muted);margin-bottom:20px;">{{ t.review_first }}</p>
+    {% endif %}
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-top:20px;">
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:18px;">{{ t.tab_reviews }}</h3>
+      <form action="/product/{{ product.id }}/review" method="post">
+        <div class="form-group">
+          <label>{{ t.review_name }}</label>
+          <input type="text" name="name" value="{{ user.name if user else '' }}" required/>
+        </div>
+        <div class="form-group">
+          <label>{{ t.review_rating }}</label>
+          <select name="rating">
+            <option value="5">★★★★★ — {{ t.rev_exc }}</option>
+            <option value="4">★★★★☆ — {{ t.rev_good }}</option>
+            <option value="3">★★★☆☆ — {{ t.rev_ok }}</option>
+            <option value="2">★★☆☆☆ — {{ t.rev_bad }}</option>
+            <option value="1">★☆☆☆☆ — {{ t.rev_awful }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <textarea name="text" placeholder="{{ t.review_text_ph }}" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">{{ t.review_submit }}</button>
+      </form>
+    </div>
+  </div>
+
+  {% if related %}
+    <section style="padding-bottom:48px;">
+      <h2 class="section-title" style="margin-bottom:20px;">{{ t.related }} <span>{{ t.related2 }}</span></h2>
+      <div class="product-grid">{% for p in related %}{% include "partials/product_card.html" %}{% endfor %}</div>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+let qty = 1;
+function changeQty(d) { qty = Math.max(1, qty+d); document.getElementById('qty-display').textContent = qty; }
+function addToCartWithQty() { addToCart({{ product.id }}, qty); }
+</script>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}{{ t.profile_title }} — Shopix{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="profile-wrap">
+    <div>
+      <div class="profile-sidebar">
+        <div class="profile-avatar">{{ user.name[0].upper() }}</div>
+        <div style="font-weight:700;font-size:1rem;margin-bottom:4px;">{{ user.name }}</div>
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:20px;">{{ user.email }}</div>
+        <div style="border-top:1px solid var(--border);padding-top:16px;display:flex;flex-direction:column;gap:6px;">
+          {% if user.is_admin %}
+            <a href="/admin" class="btn btn-outline btn-sm" style="justify-content:center;">{{ t.profile_admin }}</a>
+          {% endif %}
+          <a href="/logout" class="btn btn-ghost btn-sm" style="justify-content:center;">{{ t.profile_logout }}</a>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h1 style="font-size:1.4rem;font-weight:800;margin-bottom:24px;">{{ t.profile_title }}</h1>
+      {% if orders %}
+        {% for order in orders %}
+          <div class="order-card">
+            <div class="order-card-head">
+              <div>
+                <div style="font-weight:700;margin-bottom:2px;">{{ t.succ_order }} #{{ order.id }}</div>
+                <div style="font-size:.78rem;color:var(--muted);">{{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <span class="order-status status-{{ order.status }}">
+                  {% if order.status == 'pending'   %}{{ t.st_pending }}
+                  {% elif order.status == 'paid'    %}{{ t.st_paid }}
+                  {% elif order.status == 'shipped' %}{{ t.st_shipped }}
+                  {% elif order.status == 'delivered'%}{{ t.st_delivered }}
+                  {% elif order.status == 'cancelled'%}{{ t.st_cancelled }}
+                  {% else %}{{ order.status }}{% endif %}
+                </span>
+                <span style="font-weight:800;font-size:1.05rem;">{{ "%.0f"|format(order.total) }} ₴</span>
+              </div>
+            </div>
+            <div style="padding:14px 18px;">
+              {% for item in order.items %}
+                <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+                  {% if item.image %}
+                    <img src="{{ item.image }}" style="width:40px;height:40px;object-fit:contain;border-radius:6px;background:var(--bg3);padding:4px;"/>
+                  {% else %}
+                    <div style="width:40px;height:40px;border-radius:6px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">📦</div>
+                  {% endif %}
+                  <div style="flex:1;font-size:.88rem;">{{ item.name }}</div>
+                  <div style="font-size:.85rem;color:var(--muted);">× {{ item.quantity }}</div>
+                  <div style="font-size:.9rem;font-weight:700;">{{ "%.0f"|format(item.price * item.quantity) }} ₴</div>
+                </div>
+              {% endfor %}
+              <div style="font-size:.8rem;color:var(--muted);margin-top:10px;">{{ t.ord_addr }} {{ order.address }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">📦</div>
+          <h2>{{ t.order_empty_h }}</h2>
+          <p>{{ t.order_empty_p }}</p>
+          <a href="/catalog" class="btn btn-primary">{{ t.order_go }}</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

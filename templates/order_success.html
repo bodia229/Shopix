@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ t.succ_order }} #{{ order.id }} — Shopix{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="success-wrap">
+    <div style="font-size:4rem;margin-bottom:16px;">✅</div>
+    <h1 style="font-size:1.8rem;font-weight:900;margin-bottom:8px;">{{ t.succ_title }}</h1>
+    <p style="color:var(--muted);margin-bottom:28px;font-size:.95rem;">
+      {{ t.succ_sub.replace('{id}', order.id|string) }}<br/>
+      {{ t.succ_contact.replace('{email}', order.email) }}
+    </p>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-align:left;margin-bottom:24px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div style="font-size:.75rem;color:var(--muted);margin-bottom:3px;">{{ t.succ_order }}</div>
+          <div style="font-weight:700;">#{{ order.id }}</div>
+        </div>
+        <div>
+          <div style="font-size:.75rem;color:var(--muted);margin-bottom:3px;">{{ t.succ_status }}</div>
+          <span class="order-status status-pending">{{ t.succ_pending }}</span>
+        </div>
+        <div>
+          <div style="font-size:.75rem;color:var(--muted);margin-bottom:3px;">{{ t.succ_sum }}</div>
+          <div style="font-weight:800;font-size:1.1rem;">{{ "%.0f"|format(order.total) }} ₴</div>
+        </div>
+      </div>
+      <div style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:12px;padding-top:12px;border-top:1px solid var(--border);">{{ t.succ_goods }}</div>
+      {% for item in order_items %}
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.88rem;">
+          <span>{{ item.name }} × {{ item.quantity }}</span>
+          <span style="color:var(--muted);">{{ "%.0f"|format(item.price * item.quantity) }} ₴</span>
+        </div>
+      {% endfor %}
+      <div style="margin-top:14px;font-size:.85rem;">
+        <div style="color:var(--muted);margin-bottom:4px;">{{ t.succ_addr }}</div>
+        <div>{{ order.address }}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="/catalog" class="btn btn-primary">{{ t.succ_continue }}</a>
+      {% if user %}
+        <a href="/profile" class="btn btn-ghost">{{ t.succ_orders }}</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

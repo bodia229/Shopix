@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ t.reg_title }} — Shopix{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="form-box">
+    <h1>{{ t.reg_title }}</h1>
+    <p>{{ t.reg_have_acc }} <a href="/login" style="color:var(--accent2);">{{ t.reg_login }}</a></p>
+    {% if error %}<div class="form-error">{{ error }}</div>{% endif %}
+    <form method="post" action="/register">
+      <div class="form-group">
+        <label>{{ t.reg_name }}</label>
+        <input type="text" name="name" required placeholder="{{ t.reg_name }}" autocomplete="name"/>
+      </div>
+      <div class="form-group">
+        <label>{{ t.reg_email }}</label>
+        <input type="email" name="email" required placeholder="your@email.com" autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label>{{ t.reg_pass }}</label>
+        <input type="password" name="password" required placeholder="{{ t.reg_pass_ph }}" autocomplete="new-password"/>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">{{ t.reg_btn }}</button>
+      <p style="font-size:.78rem;color:var(--muted);margin-top:14px;text-align:center;">{{ t.reg_agree }}</p>
+    </form>
+  </div>
+</div>
+{% endblock %}

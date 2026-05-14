@@ -1,0 +1,87 @@
+{% extends "admin/layout.html" %}
+{% block title %}Товари — Shopix Admin{% endblock %}
+{% block page_title %}Товари{% endblock %}
+{% block topbar_right %}
+  <a href="/admin/products/new" class="btn btn-primary btn-sm">+ Додати товар</a>
+{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+  <div class="admin-card-head">
+    <h2>Всі товари ({{ products|length }})</h2>
+  </div>
+  {% if products %}
+    <div style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Назва</th>
+            <th>Категорія</th>
+            <th>Ціна</th>
+            <th>Залишок</th>
+            <th>Статус</th>
+            <th>Дії</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in products %}
+            {% set cat = categories|selectattr('id','equalto',p.category_id)|first if p.category_id else None %}
+            <tr>
+              <td>
+                {% if p.image %}
+                  <img src="{{ p.image }}" class="td-img"/>
+                {% else %}
+                  <div style="width:40px;height:40px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;">📦</div>
+                {% endif %}
+              </td>
+              <td>
+                <div style="font-weight:600;">{{ p.name }}</div>
+                {% if p.brand %}<div style="font-size:.75rem;color:var(--muted);">{{ p.brand }}</div>{% endif %}
+              </td>
+              <td style="color:var(--muted);">{{ cat.name if cat else '—' }}</td>
+              <td>
+                <strong>{{ "%.0f"|format(p.price) }} ₴</strong>
+                {% if p.old_price %}<br/><span style="font-size:.75rem;text-decoration:line-through;color:var(--muted);">{{ "%.0f"|format(p.old_price) }} ₴</span>{% endif %}
+              </td>
+              <td>
+                {% if p.stock > 0 %}
+                  <span class="badge badge-green">{{ p.stock }}</span>
+                {% else %}
+                  <span class="badge badge-red">0</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if p.is_active %}
+                  <span class="badge badge-green">Активний</span>
+                {% else %}
+                  <span class="badge badge-gray">Схований</span>
+                {% endif %}
+                {% if p.is_featured %}
+                  <span class="badge badge-purple">Топ</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="action-btns">
+                  <a href="/product/{{ p.slug }}" target="_blank" class="btn-icon btn-edit" title="Переглянути">👁</a>
+                  <a href="/admin/products/edit/{{ p.id }}" class="btn-icon btn-edit" title="Редагувати">✏️</a>
+                  <form action="/admin/products/delete/{{ p.id }}" method="post" onsubmit="return confirm('Видалити товар?')">
+                    <button type="submit" class="btn-icon btn-delete" title="Видалити">🗑</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state" style="padding:48px;">
+      <div class="empty-icon">📦</div>
+      <h2>Товарів поки немає</h2>
+      <p>Додайте перший товар до каталогу.</p>
+      <a href="/admin/products/new" class="btn btn-primary">+ Додати товар</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

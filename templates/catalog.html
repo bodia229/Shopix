@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}{{ t.nav_catalog }} — Shopix{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="catalog-layout">
+    <!-- SIDEBAR -->
+    <aside class="catalog-sidebar">
+      <div class="filter-box">
+        <h3>{{ t.filter_cats }}</h3>
+        <div class="filter-cat">
+          <a href="/catalog{% if q %}?q={{ q }}{% endif %}" class="{% if not category %}active{% endif %}">{{ t.cat_all }}</a>
+          {% for cat in categories %}
+            <a href="/catalog?category={{ cat.slug }}{% if q %}&q={{ q }}{% endif %}"
+               class="{% if category == cat.slug %}active{% endif %}">{{ cat.icon }} {{ cat.name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="filter-box">
+        <h3>{{ t.filter_price }}</h3>
+        <form method="get" action="/catalog">
+          {% if category %}<input type="hidden" name="category" value="{{ category }}"/>{% endif %}
+          {% if q %}<input type="hidden" name="q" value="{{ q }}"/>{% endif %}
+          {% if sort %}<input type="hidden" name="sort" value="{{ sort }}"/>{% endif %}
+          {% if brand %}<input type="hidden" name="brand" value="{{ brand }}"/>{% endif %}
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+            <div class="form-group" style="margin:0;flex:1;">
+              <input type="number" name="min_price" placeholder="Від" value="{{ min_price if min_price else '' }}" min="0" style="padding:8px 10px;font-size:.83rem;"/>
+            </div>
+            <div class="form-group" style="margin:0;flex:1;">
+              <input type="number" name="max_price" placeholder="До" value="{{ max_price if max_price < 999999 else '' }}" min="0" style="padding:8px 10px;font-size:.83rem;"/>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-ghost btn-sm" style="width:100%">{{ t.filter_apply }}</button>
+        </form>
+      </div>
+      {% if brands %}
+      <div class="filter-box">
+        <h3>{{ t.filter_brand }}</h3>
+        <div class="filter-cat">
+          <a href="/catalog?category={{ category }}&q={{ q }}&sort={{ sort }}" class="{% if not brand %}active{% endif %}">{{ t.filter_all }}</a>
+          {% for b in brands %}
+            <a href="/catalog?category={{ category }}&q={{ q }}&sort={{ sort }}&brand={{ b }}" class="{% if brand == b %}active{% endif %}">{{ b }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </aside>
+    <!-- MAIN -->
+    <div>
+      <div class="catalog-header">
+        <div>
+          {% if active_category is defined and active_category %}
+            <h1 style="font-size:1.3rem;font-weight:800;margin-bottom:4px;">{{ active_category.icon }} {{ active_category.name }}</h1>
+          {% elif q %}
+            <h1 style="font-size:1.3rem;font-weight:800;margin-bottom:4px;">«{{ q }}»</h1>
+          {% else %}
+            <h1 style="font-size:1.3rem;font-weight:800;margin-bottom:4px;">{{ t.cat_all }}</h1>
+          {% endif %}
+          <div class="catalog-count">{{ total }} {{ t.sec_goods }}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:.8rem;color:var(--muted);">{{ t.sort_label }}</span>
+          <select class="sort-select" onchange="location.href='/catalog?category={{ category }}&q={{ q }}&sort='+this.value+'&brand={{ brand }}&min_price={{ min_price }}&max_price={{ max_price if max_price < 999999 else '' }}'">
+            <option value="newest"     {% if sort=='newest'     %}selected{% endif %}>{{ t.sort_newest }}</option>
+            <option value="price_asc"  {% if sort=='price_asc'  %}selected{% endif %}>{{ t.sort_price_asc }}</option>
+            <option value="price_desc" {% if sort=='price_desc' %}selected{% endif %}>{{ t.sort_price_desc }}</option>
+            <option value="popular"    {% if sort=='popular'    %}selected{% endif %}>{{ t.sort_popular }}</option>
+          </select>
+        </div>
+      </div>
+      {% if products %}
+        <div class="product-grid">
+          {% for p in products %}{% include "partials/product_card.html" %}{% endfor %}
+        </div>
+        {% if pages > 1 %}
+          <div class="pagination">
+            {% if page > 1 %}<a href="/catalog?category={{ category }}&q={{ q }}&sort={{ sort }}&page={{ page-1 }}" class="page-btn">‹</a>{% endif %}
+            {% for i in range(1, pages+1) %}
+              {% if i == page %}<span class="page-btn active">{{ i }}</span>
+              {% elif i == 1 or i == pages or (i >= page-2 and i <= page+2) %}<a href="/catalog?category={{ category }}&q={{ q }}&sort={{ sort }}&page={{ i }}" class="page-btn">{{ i }}</a>
+              {% elif i == page-3 or i == page+3 %}<span class="page-btn" style="border:none;background:none;">…</span>
+              {% endif %}
+            {% endfor %}
+            {% if page < pages %}<a href="/catalog?category={{ category }}&q={{ q }}&sort={{ sort }}&page={{ page+1 }}" class="page-btn">›</a>{% endif %}
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <h2>{{ t.cat_empty_h }}</h2>
+          <p>{{ t.cat_empty_p }}</p>
+          <a href="/catalog" class="btn btn-primary">{{ t.cat_all }}</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

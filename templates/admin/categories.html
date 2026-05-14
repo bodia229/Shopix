@@ -1,0 +1,71 @@
+{% extends "admin/layout.html" %}
+{% block title %}Категорії — Shopix Admin{% endblock %}
+{% block page_title %}Категорії{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start;">
+
+  <!-- LIST -->
+  <div class="admin-card">
+    <div class="admin-card-head">
+      <h2>Категорії ({{ categories|length }})</h2>
+    </div>
+    {% if categories %}
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Іконка</th>
+            <th>Назва</th>
+            <th>Slug</th>
+            <th>Порядок</th>
+            <th>Дії</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cat in categories %}
+            <tr>
+              <td style="font-size:1.5rem;">{{ cat.icon }}</td>
+              <td><strong>{{ cat.name }}</strong></td>
+              <td style="color:var(--muted);font-size:.82rem;font-family:monospace;">{{ cat.slug }}</td>
+              <td>{{ cat.sort_order }}</td>
+              <td>
+                <form action="/admin/categories/delete/{{ cat.id }}" method="post" onsubmit="return confirm('Видалити категорію «{{ cat.name }}»?')">
+                  <button type="submit" class="btn-icon btn-delete" title="Видалити">🗑</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state" style="padding:40px;">
+        <div class="empty-icon">🏷️</div>
+        <p>Категорій поки немає</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- ADD FORM -->
+  <div class="admin-card" style="padding:20px;">
+    <h2 style="font-size:.95rem;font-weight:700;margin-bottom:18px;">Додати категорію</h2>
+    <form action="/admin/categories/add" method="post">
+      <div class="form-group">
+        <label>Назва *</label>
+        <input type="text" name="name" required placeholder="Наприклад: Телевізори"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group" style="margin:0;">
+          <label>Іконка (emoji)</label>
+          <input type="text" name="icon" placeholder="📺" value="📦" maxlength="4"/>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Порядок</label>
+          <input type="number" name="sort_order" value="{{ (categories|length + 1) }}" min="0"/>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px;">+ Додати</button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

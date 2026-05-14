@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Shopix{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/css/style.css?v=2"/>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" class="nav-logo">Shop<span>ix</span></a>
+  <form class="nav-search" action="/catalog" method="get">
+    <input type="text" name="q" placeholder="{{ t.nav_search }}" value="{{ request.query_params.get('q','') }}"/>
+    <button type="submit">🔍</button>
+  </form>
+  <div class="nav-links">
+    <a href="/catalog" class="{% if current_page=='catalog' %}active{% endif %}">{{ t.nav_catalog }}</a>
+    {% if user %}
+      <a href="/profile" class="{% if current_page=='profile' %}active{% endif %}">{{ user.name.split()[0] }}</a>
+      {% if user.is_admin %}
+        <a href="/admin">{{ t.nav_admin }}</a>
+      {% endif %}
+      <a href="/logout">{{ t.nav_logout }}</a>
+    {% else %}
+      <a href="/login"    class="{% if current_page=='login'    %}active{% endif %}">{{ t.nav_login }}</a>
+      <a href="/register" class="{% if current_page=='register' %}active{% endif %}">{{ t.nav_register }}</a>
+    {% endif %}
+    <a href="/cart" class="nav-cart {% if current_page=='cart' %}active{% endif %}">
+      🛒 {{ t.nav_cart }}
+      {% if cart_count > 0 %}
+        <span class="cart-badge">{{ cart_count }}</span>
+      {% endif %}
+    </a>
+    <!-- LANG SWITCHER -->
+    <div class="lang-switcher">
+      {% for code, label in LANGS.items() %}
+        <a href="/set-lang/{{ code }}" class="lang-btn {% if lang == code %}active{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </div>
+  </div>
+</nav>
+
+<!-- CATEGORY BAR -->
+<div class="cat-bar">
+  <a href="/catalog" class="{% if not request.query_params.get('category') and current_page=='catalog' %}active{% endif %}">{{ t.nav_all }}</a>
+  {% for cat in categories %}
+    <a href="/catalog?category={{ cat.slug }}"
+       class="{% if request.query_params.get('category') == cat.slug %}active{% endif %}">
+      {{ cat.icon }} {{ cat.name }}
+    </a>
+  {% endfor %}
+</div>
+
+{% block content %}{% endblock %}
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Shop<span>ix</span></div>
+        <p class="footer-desc">{{ t.hero_sub }}</p>
+      </div>
+      <div class="footer-col">
+        <h4>{{ t.footer_catalog }}</h4>
+        {% for cat in categories[:4] %}
+          <a href="/catalog?category={{ cat.slug }}">{{ cat.name }}</a>
+        {% endfor %}
+      </div>
+      <div class="footer-col">
+        <h4>{{ t.footer_buyers }}</h4>
+        <a href="/cart">{{ t.footer_cart }}</a>
+        <a href="/profile">{{ t.footer_orders }}</a>
+        <a href="/register">{{ t.footer_reg }}</a>
+        <a href="/login">{{ t.footer_login }}</a>
+      </div>
+      <div class="footer-col">
+        <h4>{{ t.footer_contact }}</h4>
+        <a href="mailto:info@shopix.ua">info@shopix.ua</a>
+        <a href="tel:+380441234567">+38 (044) 123-45-67</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>{{ t.footer_copy }}</span>
+    </div>
+  </div>
+</footer>
+
+<!-- COMPARE BAR -->
+<div class="compare-bar" id="compare-bar">
+  <span class="compare-bar-title">{{ t.cmp_bar_title }}</span>
+  <div class="compare-bar-items" id="compare-bar-items"></div>
+  <a href="#" class="btn btn-primary btn-sm" id="compare-bar-btn">{{ t.cmp_bar_btn }}</a>
+  <button class="btn btn-ghost btn-sm" onclick="clearCompare()">{{ t.cmp_bar_clear }}</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── TOAST ──────────────────────────────────────────────────
+function showToast(msg, icon='✅') {
+  const t = document.getElementById('toast');
+  t.innerHTML = icon + ' ' + msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── CART ───────────────────────────────────────────────────
+async function addToCart(productId, qty=1) {
+  const fd = new FormData();
+  fd.append('product_id', productId);
+  fd.append('quantity', qty);
+  const r = await fetch('/cart/add', {method:'POST', body:fd});
+  const j = await r.json();
+  if (j.ok) {
+    showToast('{{ t.btn_add_cart }}');
+    const badge = document.querySelector('.cart-badge');
+    if (badge) badge.textContent = parseInt(badge.textContent||0)+1;
+    else {
+      const cartLink = document.querySelector('.nav-cart');
+      if(cartLink){
+        const b = document.createElement('span');
+        b.className='cart-badge'; b.textContent='1';
+        cartLink.appendChild(b);
+      }
+    }
+  }
+}
+
+// ── COMPARE ────────────────────────────────────────────────
+const CMP_KEY = 'shopix_compare';
+const MAX_CMP = 4;
+
+function getCompare() {
+  try { return JSON.parse(localStorage.getItem(CMP_KEY) || '[]'); }
+  catch { return []; }
+}
+function saveCompare(arr) {
+  localStorage.setItem(CMP_KEY, JSON.stringify(arr));
+}
+function toggleCompare(id, name, img) {
+  id = String(id);
+  let arr = getCompare();
+  const idx = arr.findIndex(x => x.id === id);
+  if (idx >= 0) {
+    arr.splice(idx, 1);
+    showToast('{{ t.btn_compare_rm }}', '📊');
+  } else {
+    if (arr.length >= MAX_CMP) {
+      showToast('Максимум ' + MAX_CMP + ' товари', '⚠️');
+      return;
+    }
+    arr.push({id, name, img});
+    showToast('{{ t.btn_compare }}', '📊');
+  }
+  saveCompare(arr);
+  renderCompareBar();
+  updateCompareBtn(id, arr.findIndex(x => x.id === id) >= 0);
+}
+function clearCompare() {
+  saveCompare([]);
+  renderCompareBar();
+  document.querySelectorAll('.btn-compare-card').forEach(b => {
+    b.classList.remove('active');
+    b.textContent = '⚖️ {{ t.btn_compare }}';
+  });
+}
+function renderCompareBar() {
+  const arr = getCompare();
+  const bar = document.getElementById('compare-bar');
+  const items = document.getElementById('compare-bar-items');
+  const btn = document.getElementById('compare-bar-btn');
+  if (!arr.length) { bar.classList.remove('show'); return; }
+  bar.classList.add('show');
+  items.innerHTML = arr.map(p => `
+    <div class="compare-bar-item">
+      ${p.img ? `<img src="${p.img}" alt=""/>` : '<span>📦</span>'}
+      <span>${p.name.substring(0,22)}${p.name.length>22?'…':''}</span>
+      <button onclick="toggleCompare('${p.id}','${p.name.replace(/'/g,"\\'")}','${p.img||''}')" title="Видалити">✕</button>
+    </div>
+  `).join('');
+  btn.href = '/compare?ids=' + arr.map(x=>x.id).join(',');
+}
+function updateCompareBtn(id, active) {
+  document.querySelectorAll(`.btn-compare-card[data-id="${id}"]`).forEach(b => {
+    b.classList.toggle('active', active);
+    b.textContent = active ? '⚖️ {{ t.btn_compare_rm }}' : '⚖️ {{ t.btn_compare }}';
+  });
+}
+function initCompareButtons() {
+  const arr = getCompare();
+  arr.forEach(p => updateCompareBtn(p.id, true));
+}
+document.addEventListener('DOMContentLoaded', () => {
+  renderCompareBar();
+  initCompareButtons();
+});
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>
